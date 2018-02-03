@@ -1,0 +1,179 @@
+{% extends "commons/base_site.html" %}
+
+{% load nvd3_tags %}
+{% load l10n %}
+
+{% block title %} Dashboard {% endblock title %}
+
+{% block stylesheets %}
+  {{ block.super }}
+  {% include_chart_jscss %}
+{% endblock stylesheets %}
+
+{% block content %}
+  <div class="right_col" role="main">
+    <!-- top tiles -->
+    <div class="row tile_count">
+      <div class="col-sm-3 tile_stats_count">
+        <span class="count_top"><i class="fa fa-user"></i> Annual Accumulated Income</span>
+        <div class="count">${{ total_income|floatformat:2 }}</div>
+      </div>
+      <div class="col-sm-3 tile_stats_count">
+        <span class="count_top"><i class="fa fa-clock-o"></i> Annual Accumulated Expense</span>
+        <div class="count">${{ total_expense|floatformat:2 }}</div>
+      </div>
+      <div class="col-sm-3 tile_stats_count">
+        <span class="count_top"><i class="fa fa-user"></i> Annual Accumulated Saving</span>
+        <div class="count">${{ total_saving|floatformat:2 }}</div>
+        <span class="count_bottom">
+          <i class="{% if actual_saving_percent < 100 %}red{% else %}green{% endif %}">
+            <i class="fa fa-sort-{% if actual_saving_percent < 100 %}desc{% else %}asc{% endif %}"></i>
+            <strong>{{ actual_saving_percent|floatformat:0 }}%</strong>
+          </i>
+          of the target goal
+        </span>
+      </div>
+      <div class="col-sm-3 tile_stats_count">
+        <span class="count_top"><i class="fa fa-user"></i> Expected Saving</span>
+        <div class="count">${{ expected_saving|floatformat:2 }}</div>
+        <span class="count_bottom">Annual Goal Saving: <strong>${{ annual_saving_goal|floatformat:0 }}</strong></span>
+      </div>
+    </div>
+    <!-- /top tiles -->
+    <div class="">
+    <br />
+
+    <div class="row">
+      <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="dashboard_graph x_panel">
+          <div class="row x_title">
+            <div class="col-md-6">
+              <h3>Income-Expense <small>Year Summary</small></h3>
+            </div>
+            <div class="col-md-6">
+              <div class="pull-right" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc">
+                <i class="glyphicon glyphicon-calendar fa fa-calendar"></i>
+                <select id="summary_year_select">
+                  {% for a_year in available_years %}
+                  <option>{{ a_year|unlocalize }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="x_content">
+            <div class="demo-container" style="height:400px">
+{#              <div id="chart_plot_03" class="demo-placeholder"></div>#}
+              {% include_container main_chart.chartcontainer 400 '100%' %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+
+      {% for chart in pie_charts %}
+      <div class="col-md-6">
+        <div class="x_panel">
+          <div class="x_title">
+            <h2>Expense: {{ chart.monthyear }}</h2>
+            <ul class="nav navbar-right panel_toolbox">
+              <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+              </li>
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+                <ul class="dropdown-menu" role="menu">
+                  <li><a href="{% url 'report_monthly_stmts' year chart.month mode %}">Show Detail</a></li>
+                  <li><a href="#">Set Goal</a></li>
+                  <li><a href="/admin/money/category">Edit Categories</a></li>
+                </ul>
+              </li>
+              <li><a class="close-link"><i class="fa fa-close"></i></a>
+              </li>
+            </ul>
+            <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+            {% include_container chart.chartcontainer 400 500 %}
+            <div class="dashboard-widget-content">
+              <ul class="quick-list">
+                <li><i class="fa fa-money"></i><strong>Income</strong><span style="float: right">{{ chart.total_income|floatformat:2 }}</span></li>
+                <li><i class="fa fa-credit-card"></i><strong>Expense</strong><span style="float: right">{{ chart.total_expense|floatformat:2 }}</span></li>
+                <li>
+                  <i class="fa fa-dollar"></i>
+                  <strong>Saving</strong>
+                  <span style="float: right" class="{% if chart.total_saving > 0 %}text-primary{% else %}text-warning font-weight-bold{% endif %}">
+                    <strong>{{ chart.total_saving|floatformat:2 }}</strong>
+                  </span>
+                </li>
+              </ul>
+
+              <div class="sidebar-widget">
+                <h4>Goal</h4>
+                <canvas width="150" height="80" id="chart-gauge-{{ chart.month }}" class="" style="width: 160px; height: 100px;"></canvas>
+                <div class="goal-wrapper">
+                  <span class="gauge-value pull-left">$</span>
+                  <span id="gauge-text-{{ chart.month }}" class="gauge-value pull-left">-</span>
+                  <span id="goal-text-{{ chart.month }}" class="goal-value pull-right">${{ monthly_saving_goal }}</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+
+    </div>
+    </div>
+  </div>
+
+{% endblock content %}
+
+{% block javascripts %}
+  {{ block.super}}
+
+  <script src="//cdnjs.cloudflare.com/ajax/libs/gauge.js/1.3.5/gauge.min.js"></script>
+
+  <script>
+    var chart_gauge_settings = {
+		  lines: 12,
+		  angle: 0,
+		  lineWidth: 0.4,
+		  pointer: {
+			  length: 0.75,
+			  strokeWidth: 0.042,
+			  color: '#1D212A'
+		  },
+		  limitMax: 'false',
+      limitMin: 'false',
+		  colorStart: '#1ABC9C',
+		  colorStop: '#1ABC9C',
+		  strokeColor: '#F0F3F3',
+		  generateGradient: true
+	  };
+    $(function() {
+        $('#summary_year_select').change(function () {
+            var year = $(this).val();
+            if (year) {
+                window.location = "{% url 'report_annual_summary' '0000' 'purchased'%}".replace(/0000/, year).replace(/purchased/, '{{ mode }}');
+            }
+            return false;
+        });
+    });
+  </script>
+
+  {% load_chart main_chart.charttype main_chart.chartdata main_chart.chartcontainer main_chart.extra %}
+
+  {% for chart in pie_charts %}
+    {% load_chart chart.charttype chart.chartdata chart.chartcontainer chart.extra %}
+    <script>
+			var chart_gauge_{{ chart.month }} = new Gauge(document.getElementById('chart-gauge-{{ chart.month }}')).setOptions(chart_gauge_settings);
+			chart_gauge_{{ chart.month }}.maxValue = {{ monthly_saving_goal|unlocalize }};
+			chart_gauge_{{ chart.month }}.animationSpeed = 32;
+			chart_gauge_{{ chart.month }}.set({{ chart.total_saving|unlocalize }});
+			chart_gauge_{{ chart.month }}.setTextField(document.getElementById("gauge-text-{{ chart.month }}"));
+    </script>
+  {% endfor %}
+{% endblock javascripts %}

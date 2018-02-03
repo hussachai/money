@@ -1,0 +1,12 @@
+{% load nvd3_tags %}
+<head>
+    {# Jquery CDN : Needed when using jquery_on_ready=True #}
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    {% include_chart_jscss %}
+    {% load_chart charttype chartdata chartcontainer extra %}
+</head>
+<body>
+  <div style="width: 100%">
+    {% include_container chartcontainer 400 '100%' %}
+  </div>
+</body>

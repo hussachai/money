@@ -1,0 +1,19 @@
+
+npm install -g bower
+
+pip3 install django-bower
+
+python3 manage.py bower install
+
+python3 manage.py collectstatic
+
+pip3 install django-nvd3
+
+pip3 install django-mptt
+
+pip3 install django-bootstrap3
+
+
+https://github.com/areski/django-nvd3/tree/develop/demoproject
+
+https://github.com/dyve/django-bootstrap3/tree/develop/demo

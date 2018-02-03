@@ -1,0 +1,17 @@
+{# Load the tag library #}
+{% load nvd3_tags %}
+<head>
+    {% include_chart_jscss %}
+    {# Load CSS and JavaScript #}
+    <link href="/static/gentelella/vendors/datatables.net-bs/css/dataTables.bootstrap.min.css" rel="stylesheet">
+    {% for chart in charts %}
+        {% load_chart chart.charttype chart.chartdata chart.chartcontainer chart.extra %}
+    {% endfor %}
+</head>
+<body>
+    <h1>Fruits vs Calories</h1>
+    {% for chart in charts %}
+        {{ "hello" }}
+        {% include_container chart.chartcontainer %}
+    {% endfor %}
+</body>

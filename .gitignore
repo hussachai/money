@@ -1,0 +1,8 @@
+
+.idea
+my.cnf
+*.bak
+*.pyc
+
+mysite/components/bower_components/
+static/
